@@ -12,6 +12,7 @@ import { apiRouter } from "./routes/api.routes";
 import { healthRouter } from "./routes/health.routes";
 import { runAbandonmentSweep } from "./services/followup.service";
 import { runDataRetentionSweep } from "./services/retention.service";
+import { runInboundQueueSweep } from "./services/inboundQueue.service";
 import { withJobLease } from "./utils/jobLease";
 
 const app = express();
@@ -56,6 +57,11 @@ app.use("/api", apiRouter);
 app.use(errorHandler);
 
 const server = app.listen(env.PORT, () => logger.info({ port: env.PORT, env: env.NODE_ENV, whatsappMode: env.WHATSAPP_MODE }, "Urbans WhatsApp Automation escuchando"));
+
+cron.schedule("* * * * *", () => {
+  void withJobLease("inbound-queue-sweep", 55, runInboundQueueSweep)
+    .catch(err => logger.error({ err }, "Error en procesamiento de cola entrante"));
+});
 
 const abandonmentCron = `*/${env.ABANDONMENT_CRON_INTERVAL_MINUTES} * * * *`;
 cron.schedule(abandonmentCron, () => {
