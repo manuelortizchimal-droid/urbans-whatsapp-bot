@@ -57,7 +57,7 @@ CREATE TABLE "leads" (
     "utm_content" TEXT,
     "referral_headline" TEXT,
     "referral_source_url" TEXT,
-    "tags" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "tags" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
     "status" "LeadStatus" NOT NULL DEFAULT 'new',
     "conversation_step" "ConversationStep" NOT NULL DEFAULT 'NEW',
     "assigned_agent" TEXT,
