@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Language { es en }
+enum Intent { rent buy insurance }
+enum InsuranceType { home auto health travel }
+enum PropertyType { apartment house villa }
+enum PurchasePurpose { live invest }
+enum LeadStatus { new language_selected intent_selected qualifying qualified qualified_pending_agent human_active follow_up closed_won closed_lost abandoned }
+enum ConversationStep { NEW LANGUAGE_SELECT MENU RENT_ZONE RENT_BUDGET RENT_BEDROOMS RENT_DATE RENT_OCCUPANTS RENT_FURNISHED RENT_PETS BUY_ZONE BUY_BUDGET BUY_PROPERTY_TYPE BUY_BEDROOMS BUY_PURPOSE BUY_TIMELINE INSURANCE_TYPE INSURANCE_NAME INSURANCE_LOCATION INSURANCE_PHONE INSURANCE_DETAILS QUALIFIED HUMAN_HANDOFF HUMAN_ACTIVE FOLLOW_UP CLOSED }
+enum LeadSource { META_ADS FACEBOOK INSTAGRAM ORGANIC MARKETPLACE WHATSAPP_DIRECT UNKNOWN }
+enum MessageDirection { inbound outbound }
+
+model Lead {
+  id String @id @default(cuid())
+  waId String @unique @map("wa_id")
+  phone String
+  name String?
+  language Language?
+  intent Intent?
+  insuranceType InsuranceType? @map("insurance_type")
+  zone String?
+  budget String?
+  bedrooms Int?
+  moveInDate String? @map("move_in_date")
+  occupants Int?
+  furnished Boolean?
+  pets Boolean?
+  petsDetail String? @map("pets_detail")
+  propertyType PropertyType? @map("property_type")
+  purchasePurpose PurchasePurpose? @map("purchase_purpose")
+  purchaseTimeline String? @map("purchase_timeline")
+  insuranceCity String? @map("insurance_city")
+  insurancePhone String? @map("insurance_phone")
+  insuranceDetails String? @map("insurance_details")
+  source LeadSource @default(UNKNOWN)
+  campaignId String? @map("campaign_id")
+  adsetId String? @map("adset_id")
+  adId String? @map("ad_id")
+  utmSource String? @map("utm_source")
+  utmCampaign String? @map("utm_campaign")
+  utmContent String? @map("utm_content")
+  referralHeadline String? @map("referral_headline")
+  referralSourceUrl String? @map("referral_source_url")
+  tags String[] @default([])
+  status LeadStatus @default(new)
+  conversationStep ConversationStep @default(NEW) @map("conversation_step")
+  assignedAgent String? @map("assigned_agent")
+  reminderSentAt DateTime? @map("reminder_sent_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  lastMessageAt DateTime @default(now()) @map("last_message_at")
+  humanHandoffAt DateTime? @map("human_handoff_at")
+  notes String? @db.Text
+  messages ConversationMessage[]
+  @@map("leads")
+  @@index([status])
+  @@index([conversationStep])
+  @@index([lastMessageAt])
+}
+
+model ConversationMessage {
+  id String @id @default(cuid())
+  leadId String @map("lead_id")
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  direction MessageDirection
+  waMessageId String? @map("wa_message_id")
+  messageType String @map("message_type")
+  payload Json
+  stepAtTime ConversationStep @map("step_at_time")
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("conversation_messages")
+  @@index([leadId])
+  @@index([waMessageId])
+}
+
+model ProcessedMessage {
+  id String @id @default(cuid())
+  waMessageId String @unique @map("wa_message_id")
+  processedAt DateTime @default(now()) @map("processed_at")
+  @@map("processed_messages")
+}

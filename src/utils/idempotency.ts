@@ -1,0 +1,2 @@
+import { Prisma } from "@prisma/client"; import { prisma } from "../db/prisma"; import { logger } from "./logger";
+export async function markMessageAsProcessed(waMessageId:string):Promise<boolean>{try{await prisma.processedMessage.create({data:{waMessageId}});return true;}catch(err){if(err instanceof Prisma.PrismaClientKnownRequestError&&err.code==="P2002"){logger.info({waMessageId},"Mensaje duplicado detectado (idempotencia), se omite procesamiento");return false;} throw err;}}
