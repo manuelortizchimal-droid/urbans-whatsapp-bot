@@ -1,5 +1,51 @@
-import { Request,Response } from "express"; import { env } from "../config/env"; import { logger } from "../utils/logger"; import { markMessageAsProcessed } from "../utils/idempotency"; import { findOrCreateLead } from "../services/lead.service"; import { processInboundMessage } from "../services/flow.service"; import { WhatsAppMessage,WhatsAppWebhookBody } from "../types/whatsapp.types"; import { NormalizedInboundMessage } from "../types/flow.types";
-export function verifyWebhook(req:Request,res:Response){const mode=req.query["hub.mode"], token=req.query["hub.verify_token"], challenge=req.query["hub.challenge"]; if(mode==="subscribe"&&token===env.WHATSAPP_VERIFY_TOKEN){logger.info("Webhook verificado correctamente por Meta"); res.status(200).send(challenge); return;} logger.warn({mode,tokenProvided:Boolean(token)},"Intento de verificacion de webhook con token invalido"); res.sendStatus(403);}
-function normalizeMessage(msg:WhatsAppMessage):NormalizedInboundMessage{let interactiveId:string|null=null,interactiveTitle:string|null=null; if(msg.type==="interactive"&&msg.interactive){if(msg.interactive.type==="button_reply"&&msg.interactive.button_reply){interactiveId=msg.interactive.button_reply.id;interactiveTitle=msg.interactive.button_reply.title}else if(msg.interactive.type==="list_reply"&&msg.interactive.list_reply){interactiveId=msg.interactive.list_reply.id;interactiveTitle=msg.interactive.list_reply.title}} if(msg.type==="button"&&(msg as any).button){interactiveId=(msg as any).button.payload??null;interactiveTitle=(msg as any).button.text??null;} const rawText=msg.type==="text"?msg.text?.body?.trim()??null:null; return{waId:msg.from,rawText,interactiveId,interactiveTitle,referral:msg.referral?{sourceUrl:msg.referral.source_url,sourceType:msg.referral.source_type,sourceId:msg.referral.source_id,headline:msg.referral.headline}:undefined};}
-async function handleSingleMessage(msg:WhatsAppMessage,contactName:string|undefined){const isNew=await markMessageAsProcessed(msg.id); if(!isNew)return; try{const input=normalizeMessage(msg); const lead=await findOrCreateLead(msg.from,msg.from,contactName,input); await processInboundMessage(lead,input);}catch(err){logger.error({err,waMessageId:msg.id},"Error procesando mensaje entrante de WhatsApp")}}
-export function receiveWebhook(req:Request,res:Response){res.sendStatus(200); const body=req.body as WhatsAppWebhookBody; if(body.object!=="whatsapp_business_account")return; for(const entry of body.entry??[])for(const change of entry.changes??[]){const value=change.value; const contactName=value.contacts?.[0]?.profile?.name; for(const msg of value.messages??[]) void handleSingleMessage(msg,contactName);}}
+import { NextFunction, Request, Response } from "express";
+import crypto from "crypto";
+import { env } from "../config/env";
+import { logger } from "../utils/logger";
+import { enqueueInboundMessages } from "../services/inboundQueue.service";
+import { WhatsAppWebhookBody } from "../types/whatsapp.types";
+
+function safeTokenEqual(provided: unknown, expected: string): boolean {
+  if (typeof provided !== "string") return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+export function verifyWebhook(req: Request, res: Response): void {
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode === "subscribe" && safeTokenEqual(token, env.WHATSAPP_VERIFY_TOKEN) && typeof challenge === "string") {
+    logger.info("Webhook verificado correctamente por Meta");
+    res.status(200).send(challenge);
+    return;
+  }
+
+  logger.warn({ mode, tokenProvided: typeof token === "string" }, "Intento de verificacion de webhook con token invalido");
+  res.sendStatus(403);
+}
+
+export async function receiveWebhook(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const body = req.body as WhatsAppWebhookBody;
+    if (body?.object !== "whatsapp_business_account" || !Array.isArray(body.entry)) {
+      res.sendStatus(200);
+      return;
+    }
+
+    for (const entry of body.entry) {
+      for (const change of entry.changes ?? []) {
+        const value = change.value;
+        const contactName = value.contacts?.[0]?.profile?.name;
+        await enqueueInboundMessages(value.messages ?? [], contactName);
+      }
+    }
+
+    res.sendStatus(200);
+  } catch (err) {
+    logger.error({ err }, "No se pudo persistir el webhook entrante; Meta debe reintentar");
+    next(err);
+  }
+}
