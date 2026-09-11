@@ -7,15 +7,92 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Language { es en }
-enum Intent { rent buy insurance }
-enum InsuranceType { home auto health travel }
-enum PropertyType { apartment house villa }
-enum PurchasePurpose { live invest }
-enum LeadStatus { new language_selected intent_selected qualifying qualified qualified_pending_agent human_active follow_up closed_won closed_lost abandoned }
-enum ConversationStep { NEW LANGUAGE_SELECT MENU RENT_ZONE RENT_BUDGET RENT_BEDROOMS RENT_DATE RENT_OCCUPANTS RENT_FURNISHED RENT_PETS BUY_ZONE BUY_BUDGET BUY_PROPERTY_TYPE BUY_BEDROOMS BUY_PURPOSE BUY_TIMELINE INSURANCE_TYPE INSURANCE_NAME INSURANCE_LOCATION INSURANCE_PHONE INSURANCE_DETAILS QUALIFIED HUMAN_HANDOFF HUMAN_ACTIVE FOLLOW_UP CLOSED }
-enum LeadSource { META_ADS FACEBOOK INSTAGRAM ORGANIC MARKETPLACE WHATSAPP_DIRECT UNKNOWN }
-enum MessageDirection { inbound outbound }
+enum Language {
+  es
+  en
+}
+
+enum Intent {
+  rent
+  buy
+  insurance
+}
+
+enum InsuranceType {
+  home
+  auto
+  health
+  travel
+}
+
+enum PropertyType {
+  apartment
+  house
+  villa
+}
+
+enum PurchasePurpose {
+  live
+  invest
+}
+
+enum LeadStatus {
+  new
+  language_selected
+  intent_selected
+  qualifying
+  qualified
+  qualified_pending_agent
+  human_active
+  follow_up
+  closed_won
+  closed_lost
+  abandoned
+}
+
+enum ConversationStep {
+  NEW
+  LANGUAGE_SELECT
+  MENU
+  RENT_ZONE
+  RENT_BUDGET
+  RENT_BEDROOMS
+  RENT_DATE
+  RENT_OCCUPANTS
+  RENT_FURNISHED
+  RENT_PETS
+  BUY_ZONE
+  BUY_BUDGET
+  BUY_PROPERTY_TYPE
+  BUY_BEDROOMS
+  BUY_PURPOSE
+  BUY_TIMELINE
+  INSURANCE_TYPE
+  INSURANCE_NAME
+  INSURANCE_LOCATION
+  INSURANCE_PHONE
+  INSURANCE_DETAILS
+  QUALIFIED
+  HUMAN_HANDOFF
+  HUMAN_ACTIVE
+  FOLLOW_UP
+  CLOSED
+}
+
+enum LeadSource {
+  META_ADS
+  FACEBOOK
+  INSTAGRAM
+  ORGANIC
+  MARKETPLACE
+  WHATSAPP_DIRECT
+  UNKNOWN
+}
+
+enum MessageDirection {
+  inbound
+  outbound
+}
 
 model Lead {
   id String @id @default(cuid())
