@@ -171,3 +171,19 @@ model JobLease {
   updatedAt DateTime @updatedAt @map("updated_at")
   @@map("job_leases")
 }
+
+model InboundMessageJob {
+  id String @id @default(cuid())
+  waMessageId String @unique @map("wa_message_id")
+  message Json
+  contactName String? @map("contact_name")
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now()) @map("next_attempt_at")
+  failedAt DateTime? @map("failed_at")
+  lastError String? @map("last_error")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@map("inbound_message_jobs")
+  @@index([nextAttemptAt])
+  @@index([failedAt])
+}
