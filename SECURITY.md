@@ -1,5 +1,17 @@
 # Seguridad — Urbans WhatsApp Automation
 
+## Regla obligatoria: versión máxima + auditoría previa
+Toda solicitud, cambio, integración, despliegue o entrega de este proyecto debe pasar primero por una auditoría técnica y de seguridad antes de considerarse terminada. No se entrega una versión funcional/intermedia como versión final.
+
+Regla operativa obligatoria:
+1. Auditar seguridad, errores, datos, permisos, secretos, exposición de red, dependencias, validaciones, logs, backups, migraciones, resiliencia, escalabilidad y recuperación.
+2. Corregir automáticamente todo hallazgo que pueda resolverse sin una decisión de negocio del usuario.
+3. Ejecutar build, validación de tipos/esquema, migraciones y pruebas funcionales relevantes.
+4. Confirmar que el servicio inicia, permanece estable y completa los flujos críticos sin errores conocidos.
+5. No declarar “versión máxima final” mientras exista un hallazgo crítico/alto o un error funcional reproducible. Hallazgos moderados deben corregirse o documentarse con justificación técnica explícita antes de aprobar.
+6. Solo pedir autorización al usuario cuando exista una acción destructiva, irreversible, con costo, cambio de credenciales/cuenta, publicación live o una decisión de negocio que no pueda inferirse de forma segura.
+7. Toda entrega final debe indicar qué se probó, qué pasó y qué queda pendiente por depender de sistemas externos.
+
 ## Estándar de producción
 Este servicio no se considera listo para producción mientras exista un bloqueo crítico de seguridad, datos, resiliencia, escalabilidad o recuperación.
 
