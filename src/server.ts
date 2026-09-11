@@ -12,15 +12,35 @@ import { apiRouter } from "./routes/api.routes";
 import { healthRouter } from "./routes/health.routes";
 import { runAbandonmentSweep } from "./services/followup.service";
 import { runDataRetentionSweep } from "./services/retention.service";
-const app=express(); app.disable("x-powered-by"); app.set("trust proxy",1); app.use(helmet());
+
+const app=express();
+app.disable("x-powered-by");
+app.set("trust proxy",1);
+app.use(helmet());
+
 const allowedOrigins=env.ALLOWED_ORIGINS.split(",").map(v=>v.trim()).filter(Boolean);
-app.use("/api",cors({origin:(origin,cb)=>{if(!origin||allowedOrigins.length===0||allowedOrigins.includes(origin))return cb(null,true); return cb(new Error("Origin not allowed"));},methods:["GET","PATCH","OPTIONS"]}));
+app.use("/api",cors({
+  origin:(origin,cb)=>{
+    if(!origin||allowedOrigins.length===0||allowedOrigins.includes(origin))return cb(null,true);
+    return cb(new Error("Origin not allowed"));
+  },
+  methods:["GET","POST","PATCH","OPTIONS"]
+}));
 app.use("/api",rateLimit({windowMs:env.RATE_LIMIT_WINDOW_MS,max:env.RATE_LIMIT_MAX_REQUESTS,standardHeaders:true,legacyHeaders:false}));
 app.use(express.json({verify:(req,_res,buf)=>{(req as express.Request).rawBody=Buffer.from(buf);},limit:"2mb"}));
-app.use(healthRouter); app.use(webhookRouter); app.use("/api",apiRouter); app.use(errorHandler);
-const server=app.listen(env.PORT,()=>logger.info({port:env.PORT,env:env.NODE_ENV},"Urbans WhatsApp Automation escuchando"));
-const cronExpression=`*/${env.ABANDONMENT_CRON_INTERVAL_MINUTES} * * * *`; cron.schedule(cronExpression,()=>{runAbandonmentSweep().catch(err=>logger.error({err},"Error en el sweep de abandono"));});
+app.use(healthRouter);
+app.use(webhookRouter);
+app.use("/api",apiRouter);
+app.use(errorHandler);
+
+const server=app.listen(env.PORT,()=>logger.info({port:env.PORT,env:env.NODE_ENV,whatsappMode:env.WHATSAPP_MODE},"Urbans WhatsApp Automation escuchando"));
+const cronExpression=`*/${env.ABANDONMENT_CRON_INTERVAL_MINUTES} * * * *`;
+cron.schedule(cronExpression,()=>{runAbandonmentSweep().catch(err=>logger.error({err},"Error en el sweep de abandono"));});
 cron.schedule("17 3 * * *",()=>{runDataRetentionSweep().catch(err=>logger.error({err},"Error en retención de datos"));});
+
 async function shutdown(signal:string){logger.info({signal},"Cerrando servidor..."); server.close(async()=>{await prisma.$disconnect();process.exit(0);}); setTimeout(()=>process.exit(1),10000).unref();}
-process.on("SIGTERM",()=>shutdown("SIGTERM")); process.on("SIGINT",()=>shutdown("SIGINT")); process.on("unhandledRejection",reason=>logger.error({reason},"unhandledRejection")); process.on("uncaughtException",err=>logger.error({err},"uncaughtException"));
+process.on("SIGTERM",()=>shutdown("SIGTERM"));
+process.on("SIGINT",()=>shutdown("SIGINT"));
+process.on("unhandledRejection",reason=>logger.error({reason},"unhandledRejection"));
+process.on("uncaughtException",err=>logger.error({err},"uncaughtException"));
 export default app;
