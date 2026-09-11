@@ -163,3 +163,11 @@ model ProcessedMessage {
   processedAt DateTime @default(now()) @map("processed_at")
   @@map("processed_messages")
 }
+
+model JobLease {
+  name String @id
+  owner String
+  lockedUntil DateTime @map("locked_until")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@map("job_leases")
+}
