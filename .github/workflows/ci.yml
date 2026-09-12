@@ -17,6 +17,28 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: qa
+          POSTGRES_PASSWORD: qa_password
+          POSTGRES_DB: urbans_qa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U qa -d urbans_qa"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://qa:qa_password@127.0.0.1:5432/urbans_qa?schema=public
+      WHATSAPP_MODE: mock
+      WHATSAPP_VERIFY_TOKEN: ${{ format('verify-{0}-{0}-{0}-{0}', github.run_id) }}
+      INTERNAL_API_KEY: ${{ format('internal-{0}-{0}-{0}-{0}', github.run_id) }}
+      STORE_MESSAGE_CONTENT: "false"
+      LOG_LEVEL: warn
+      PORT: "3100"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,14 +64,18 @@ jobs:
 
       - name: Prisma validate
         run: npx prisma validate
-        env:
-          DATABASE_URL: postgresql://user:password@localhost:5432/ci?schema=public
 
       - name: Type check
         run: npm run lint
 
       - name: Build
         run: npm run build
+
+      - name: Apply migrations
+        run: npm run prisma:migrate
+
+      - name: End-to-end mock QA
+        run: npm run qa
 
       - name: Dependency audit
         run: npm audit --audit-level=moderate
