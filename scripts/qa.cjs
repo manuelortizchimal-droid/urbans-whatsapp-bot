@@ -44,8 +44,9 @@ async function waitForHealth() {
 async function assertPersisted(lead) {
   const { status, body } = await request(`/api/leads/${lead.id}`, { headers: { Authorization: `Bearer ${API_KEY}` } });
   assert.equal(status, 200);
-  assert.equal(body.id, lead.id);
-  assert.equal(body.waId, lead.waId);
+  assert.ok(body?.data, 'lead API response must include data');
+  assert.equal(body.data.id, lead.id);
+  assert.equal(body.data.waId, lead.waId);
 }
 
 async function runRentEs() {
