@@ -1,5 +1,6 @@
 import {listFollowUps,createFollowUp,patchFollowUp} from "../controllers/ownerFollowUps.controller";
 import crypto from "crypto";
+import { rateLimit } from "express-rate-limit";
 import { Request, Response, NextFunction, Router } from "express";
 import { env } from "../config/env";
 import { createOwnerProspect, listOwnerProspects, patchOwnerProspect } from "../controllers/ownerProspects.controller";
@@ -29,6 +30,7 @@ function sameOrigin(req:Request){
  if(!origin)return false;
  try {const url=new URL(origin);return url.host===req.get("host")&&url.protocol==="https:" || (env.NODE_ENV!=="production"&&url.host===req.get("host")&&url.protocol==="http:");}catch{return false;}
 }
+crmRouter.use(rateLimit({windowMs:60_000,max:120,standardHeaders:true,legacyHeaders:false}));
 crmRouter.post("/login",(req,res)=>{
  const ip=req.ip||"unknown",now=Date.now();
  const entry=loginWindow.get(ip);
@@ -45,9 +47,9 @@ crmRouter.post("/login",(req,res)=>{
  res.setHeader("Set-Cookie",cookieName+"="+ts+"."+token(ts)+"; HttpOnly; Secure; SameSite=Strict; Path=/crm; Max-Age="+Math.floor(ttl/1000));
  res.json({ok:true});
 });
-crmRouter.post("/logout",(_req,res)=>{res.setHeader("Set-Cookie",cookieName+"=; HttpOnly; Secure; SameSite=Strict; Path=/crm; Max-Age=0");res.json({ok:true});});
-crmRouter.get("/session",(req,res)=>{res.json({authenticated:valid(req)})});
-crmRouter.get("/",(_req,res)=>{res.type("html").send(readFileSync(join(process.cwd(),"crm","index.html"),"utf8"))});
+crmRouter.post("/logout",(req,res)=>{if(!sameOrigin(req)){res.status(403).json({error:"Origen no permitido"});return;}res.setHeader("Set-Cookie",cookieName+"=; HttpOnly; Secure; SameSite=Strict; Path=/crm; Max-Age=0");res.json({ok:true});});
+crmRouter.get("/session",(req,res)=>{res.setHeader("Cache-Control","no-store");res.json({authenticated:valid(req)})});
+crmRouter.get("/",(_req,res)=>{res.setHeader("Cache-Control","no-store");res.type("html").send(readFileSync(join(process.cwd(),"crm","index.html"),"utf8"))});
 crmRouter.use("/api",guard,(req,res,next)=>{
  if(req.method!=="GET"&&!sameOrigin(req)){res.status(403).json({error:"Origen no permitido"});return;}
  res.setHeader("Cache-Control","no-store");next();
