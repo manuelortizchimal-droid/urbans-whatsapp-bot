@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fingerprint, prospectScore, contactAllowed, ProspectInput } from "./prospect";
+import { fingerprint, prospectScore, contactAllowed, ProspectInput } from "../src/services/ownerProspect.logic";
 test("schema validates owner prospects",()=>{
  const p=ProspectInput.parse({source:"manual",advertiser_name:"  Owner  ",property_type:"consultorio"});
  assert.equal(p.advertiser_name,"Owner");
