@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { prisma } from "../db/prisma";
-import { ProspectInput, fingerprint, prospectScore, contactAllowed } from "../../owner-prospecting/prospect";
+import { ProspectInput, fingerprint, prospectScore, contactAllowed } from "../services/ownerProspect.logic";
 const stages = z.enum(["identified","pending","contactable","contacted","interested","negotiation","captured","discarded"]);
 const createSchema = ProspectInput.strict();
 const patchSchema = z.object({
