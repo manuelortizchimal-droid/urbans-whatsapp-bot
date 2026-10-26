@@ -14,7 +14,7 @@ export const ProspectInput = z.object({
 });
 export type ProspectInput = z.infer<typeof ProspectInput>;
 export function fingerprint(p: ProspectInput): string {
- const normalize = (s?:string) => (s || '').normalize('NFKC').toLowerCase().replace(/\\s+/g,' ').trim();
+ const normalize = (s?:string) => (s || '').normalize('NFKC').toLowerCase().replace(/\s+/g,' ').trim();
  return createHash('sha256').update([normalize(p.advertiser_name),normalize(p.property_type),normalize(p.location),normalize(p.address),normalize(p.source_url)].join('|')).digest('hex');
 }
 export function prospectScore(p: ProspectInput): number {
