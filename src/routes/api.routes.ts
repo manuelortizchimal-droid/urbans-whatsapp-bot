@@ -1,3 +1,4 @@
+import {listFollowUps,createFollowUp,patchFollowUp} from "../controllers/ownerFollowUps.controller";
 import { Router } from "express";
 import { requireInternalApiKey } from "../utils/auth";
 import { getLeadHandler, listLeadsHandler, patchLeadHandler } from "../controllers/leads.controller";
@@ -15,3 +16,7 @@ apiRouter.patch("/leads/:id", patchLeadHandler);
 apiRouter.post("/owner-prospects",createOwnerProspect);
 apiRouter.get("/owner-prospects",listOwnerProspects);
 apiRouter.patch("/owner-prospects/:id",patchOwnerProspect);
+
+apiRouter.get("/follow-ups",listFollowUps);
+apiRouter.post("/follow-ups",createFollowUp);
+apiRouter.patch("/follow-ups/:id",patchFollowUp);
