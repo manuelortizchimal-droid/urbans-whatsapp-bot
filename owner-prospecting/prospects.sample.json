@@ -1,0 +1,5 @@
+[
+ {"source":"facebook_ad","advertiser_name":"Hope For Kids Mx","property_type":"consultorio","location":"Prados Providencia, Guadalajara, Jalisco","address":"General Eulogio Parra 3030","price_mxn":4000,"details":"Consultorios pediátricos equipados; recepción, agenda y promoción; precio desde $4,000 + IVA","owner_confirmed":false,"score":56,"stage":"identified","contact_consent":false},
+ {"source":"facebook_group","advertiser_name":"Paulina Zertuche","property_type":"consultorio","location":"Providencia, Guadalajara, Jalisco","details":"Turno completo; baño privado, recepción, sala de espera, internet, café y estacionamiento. Teléfono publicado en la captura original; no equivale a consentimiento.","owner_confirmed":false,"score":61,"stage":"identified","contact_consent":false},
+ {"source":"facebook_group","advertiser_name":"Wendy Barajas Amezquita","property_type":"consultorio compartido","location":"Zona Real, Av. Solares, Zapopan, Jalisco","details":"Consultia Salud Integral; medio tiempo, compartido con nutrióloga clínica","owner_confirmed":false,"score":48,"stage":"identified","contact_consent":false}
+]

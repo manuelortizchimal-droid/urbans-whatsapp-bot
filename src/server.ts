@@ -9,6 +9,7 @@ import { errorHandler } from "./utils/errorHandler";
 import { prisma } from "./db/prisma";
 import { webhookRouter } from "./routes/webhook.routes";
 import { apiRouter } from "./routes/api.routes";
+import { crmRouter } from "./routes/crm.routes";
 import { healthRouter } from "./routes/health.routes";
 import { runAbandonmentSweep } from "./services/followup.service";
 import { runDataRetentionSweep } from "./services/retention.service";
@@ -51,6 +52,7 @@ app.use(express.json({
   limit: "256kb"
 }));
 
+if (env.CRM_ADMIN_PASSWORD && env.CRM_SESSION_SECRET) app.use('/crm', crmRouter);
 app.use(healthRouter);
 app.use(webhookRouter);
 app.use("/api", apiRouter);

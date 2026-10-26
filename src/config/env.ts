@@ -24,6 +24,8 @@ const envSchema = z.object({
   META_APP_SECRET: z.string().optional().default(""),
   ADVISOR_NOTIFICATION_NUMBER: z.string().optional().default(""),
   INTERNAL_API_KEY: z.string().min(32),
+  CRM_ADMIN_PASSWORD: z.string().min(16).optional(),
+  CRM_SESSION_SECRET: z.string().min(32).optional(),
   CRM_WEBHOOK_URL: z.union([z.string().url(), z.literal("")]).optional().default(""),
   CRM_WEBHOOK_SECRET: z.string().optional().default(""),
   ABANDONMENT_REMINDER_HOURS: z.coerce.number().positive().max(168).default(6),
