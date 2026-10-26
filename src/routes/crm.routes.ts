@@ -9,7 +9,7 @@ export const crmRouter = Router();
 const cookieName = "urbans_crm_session";
 const ttl = 8 * 60 * 60 * 1000;
 const loginWindow = new Map<string,{count:number;since:number}>();
-function token(ts:number){return crypto.createHmac("sha256",env.CRM_SESSION_SECRET).update(String(ts)).digest("hex")}
+function token(ts:number){return crypto.createHmac("sha256",env.CRM_SESSION_SECRET ?? "").update(String(ts)).digest("hex")}
 function valid(req:Request){
  const raw = (req.headers.cookie || "").split(";").map(x=>x.trim()).find(x=>x.startsWith(cookieName+"="))?.slice(cookieName.length+1);
  if(!raw)return false;
@@ -35,7 +35,7 @@ crmRouter.post("/login",(req,res)=>{
  if(item.count>=8){res.status(429).json({error:"Demasiados intentos"});return;}
  if(!sameOrigin(req)){res.status(403).json({error:"Origen no permitido"});return;}
  const supplied=Buffer.from(typeof req.body?.password==="string"?req.body.password:"");
- const expected=Buffer.from(env.CRM_ADMIN_PASSWORD);
+ const expected=Buffer.from(env.CRM_ADMIN_PASSWORD ?? "");
  if(supplied.length!==expected.length||!crypto.timingSafeEqual(supplied,expected)){
   item.count++;loginWindow.set(ip,item);res.status(401).json({error:"Contraseña incorrecta"});return;
  }
