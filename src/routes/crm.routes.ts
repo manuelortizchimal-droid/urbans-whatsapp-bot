@@ -1,3 +1,4 @@
+import {listFollowUps,createFollowUp,patchFollowUp} from "../controllers/ownerFollowUps.controller";
 import crypto from "crypto";
 import { Request, Response, NextFunction, Router } from "express";
 import { env } from "../config/env";
@@ -54,3 +55,7 @@ crmRouter.use("/api",guard,(req,res,next)=>{
 crmRouter.get("/api/owner-prospects",listOwnerProspects);
 crmRouter.post("/api/owner-prospects",createOwnerProspect);
 crmRouter.patch("/api/owner-prospects/:id",patchOwnerProspect);
+
+crmRouter.get("/api/follow-ups",listFollowUps);
+crmRouter.post("/api/follow-ups",createFollowUp);
+crmRouter.patch("/api/follow-ups/:id",patchFollowUp);
