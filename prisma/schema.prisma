@@ -205,9 +205,26 @@ model OwnerProspect {
   consentEvidence String?
   consentAt DateTime?
   fingerprint String @unique
+  followUps OwnerFollowUp[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([stage])
   @@index([score])
+}
+
+model OwnerFollowUp {
+  id String @id @default(cuid())
+  prospectId String
+  prospect OwnerProspect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  dueAt DateTime
+  type String @default("call")
+  status String @default("pending")
+  notes String? @db.Text
+  outcome String? @db.Text
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([dueAt, status])
+  @@index([prospectId])
 }
